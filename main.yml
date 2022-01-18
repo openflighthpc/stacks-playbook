@@ -1,0 +1,9 @@
+- name: Deploy Full HPC Stack to Cluster Skeleton
+  hosts: all
+  remote_user: root
+  roles:
+    - meta
+    - upstream
+    - "storage-{{ storage }}"
+    - "users-{{ user_mgmt }}"
+    - "stack"

@@ -1,0 +1,10 @@
+# Alphanumeric name for the cluster
+cluster_name: mycluster
+
+########################################################
+# Do not edit below unless you know what you are doing #
+########################################################
+
+head_node: "{{ groups.head | first }}"
+compute_nodes: "{{ groups.nodes | join(',') }}"
+

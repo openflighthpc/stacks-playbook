@@ -1,0 +1,49 @@
+- name: Install NFS utils
+  yum: name=nfs-utils state=present
+
+- name: Create export directories
+  when: "'head' in group_names"
+  file:
+    path: "{{ item.value.export }}"
+    state: directory
+    mode: 0775
+  with_dict: "{{ mounts }}"
+
+- name: Create export file
+  when: "'head' in group_names"
+  template: src=exports dest=/etc/exports
+
+- name: Create fstab file (client)
+  lineinfile:
+    path: /etc/fstab
+    line: "{{ item.value.server }}:{{ item.value.export }}    {{ item.value.mountpoint }}    nfs    {{ item.value.mount_opts }}    0 0"
+    state: present
+  with_dict: "{{ mounts }}"
+  when: "'nodes' in group_names"
+
+- name: Create fstab file (server - bindmounts)
+  lineinfile:
+    path: /etc/fstab
+    line: "{% if item.value.export != item.value.mountpoint %}{{ item.value.export }}    {{ item.value.mountpoint }}    none    defaults,bind    0 0{% endif %}"
+    state: present
+  with_dict: "{{ mounts }}"
+  when: "'head' in group_names"
+
+- name: Create mount directories
+  file:
+    path: "{{ item.value.mountpoint }}"
+    state: directory
+    mode: 0775
+  with_dict: "{{ mounts }}"
+
+- name: Start NFS service
+  service: "name=nfs state=started enabled=yes"
+
+- name: Export mounts
+  when: "'head' in group_names"
+  command: exportfs -va
+
+- name: Mount NFS exports
+  command: mount -a
+  args:
+    warn: no

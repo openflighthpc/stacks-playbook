@@ -1,0 +1,16 @@
+- name: Add Shared Local Users
+  user:
+    name: "{{ item.value.username }}"
+    uid: "{{ item.value.uid }}"
+    password: "{{ item.value.password }}"
+    create_home: "{{ 'yes' if 'head' in group_names else 'no' }}"
+  with_dict: "{{ users }}"
+
+- name: Allow Password Login
+  replace:
+    path: /etc/ssh/sshd_config
+    regexp: '^(.*)PasswordAuthentication(.*)$'
+    replace: PasswordAuthentication yes
+
+- name: Restart SSHD
+  service: "name=sshd state=restarted"

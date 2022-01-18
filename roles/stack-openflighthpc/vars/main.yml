@@ -1,0 +1,7 @@
+# If true will enable development repositories for OpenFlight packages,
+# installing the latest (and potentially volatile) versions of the user suite
+flightenv_dev: false
+
+# If true will additionally install dependencies for desktop environments.
+# Only recommended for head nodes!
+flightenv_bootstrap: false

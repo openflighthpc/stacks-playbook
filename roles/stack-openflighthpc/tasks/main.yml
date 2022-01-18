@@ -1,0 +1,81 @@
+- name: Add OpenFlight Release Repo
+  yum: name=https://repo.openflighthpc.org/openflight/centos/7/x86_64/openflighthpc-release-3-1.noarch.rpm state=present
+
+- name: Correct Repository File
+  shell: sed -i 's/$releasever/7/g;s/$basearch/x86_64/g' /etc/yum.repos.d/openflight.repo
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == '7'
+
+- name: Enabling OpenFlight Development Repo
+  ini_file:
+    dest: /etc/yum.repos.d/openflight.repo
+    section: openflight-dev
+    option: enabled
+    value: 1
+  when: flightenv_dev
+
+- name: Install packages
+  yum:
+    name:
+      "{{ all_packages }}"
+    state: present
+    disable_gpg_check: yes
+  vars:
+    generic_list:
+      - flight-user-suite
+      - flight-plugin-system-systemd-service
+      - vte-profile
+    all_packages: "{{ generic_list + ['vte', 'pdsh', 'pdsh-mod-genders'] if ansible_distribution_major_version == '7' else generic_list }}"
+
+- name: Enable flight-service systemd integration
+  service: "name=flight-service state=started enabled=yes"
+
+- name: Set cluster name
+  command: "/opt/flight/bin/flight config set cluster.name {{ cluster_name }}"
+
+- name: Create genders file
+  template: src=genders dest=/opt/flight/etc/genders
+
+- name: Locate flight-env directory
+  shell: "rpm -ql flight-env |grep 'bin/flenv' |sed 's,/bin/flenv,,g'"
+  register: env_dir
+
+- name: Configure global software environment location
+  template: src=config.yml dest={{ env_dir['stdout'] }}/etc/config.yml
+
+- name: Configure Singularity environment to work for users
+  sysctl:
+    name: user.max_user_namespaces
+    value: '100'
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: Install web suite
+  yum: name=flight-web-suite state=present
+  when: "'head' in group_names"
+
+- name: Identify cluster domain name
+  command: "hostname -d"
+  register: head_domain
+  when: "'head' in group_names"
+
+- name: Configure web suite domain
+  command: "/opt/flight/bin/flight web-suite set-domain {{ head_domain.stdout }}"
+  when: "'head' in group_names"
+
+- name: Configure landing page
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  loop:
+    - { src: 'environment.yaml', dest: '/opt/flight/opt/www/landing-page/default/content/data/environment.yaml' }
+  when: "'head' in group_names"
+
+- name: Start web suite
+  command: "/opt/flight/bin/flight web-suite start"
+  when: "'head' in group_names"
+
+- name: Enable web suite
+  command: "/opt/flight/bin/flight web-suite enable"
+  when: "'head' in group_names"
+

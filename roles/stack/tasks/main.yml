@@ -1,0 +1,50 @@
+- name: OpenFlightHPC Queue 
+  include_role:
+    name: queue-slurm-openflighthpc
+  when: stack == 'openflighthpc'
+
+- name: OpenFlightHPC Stack
+  include_role:
+    name: stack-openflighthpc
+  when: stack == 'openflighthpc'
+
+- name: Tweak Head Groups for OpenHPC
+  add_host:
+    name: "{{ head_node }}"
+    groups:
+      - openhpc_login
+      - cluster_login
+      - cluster_control
+  when: stack == 'openhpc'
+
+- name: Tweak Node Groups for OpenHPC
+  add_host:
+    name: "{{ item }}"
+    groups:
+      - openhpc_compute
+      - cluster_batch
+  loop: "{{ groups.nodes }}"
+  when: stack == 'openhpc'
+
+- name: Set OpenHPC Variables
+  set_fact:
+    openhpc_enable:
+      control: "{{ inventory_hostname in groups['cluster_control'] }}"
+      batch: "{{ inventory_hostname in groups['cluster_batch'] }}"
+      runtime: true
+    openhpc_slurm_service_enabled: true
+    openhpc_slurm_control_host: "{{ groups['cluster_control'] | first }}"
+    openhpc_slurm_partitions:
+      - name: "compute"
+    openhpc_cluster_name: 'openhpc'
+    openhpc_packages: [EasyBuild-ohpc, singularity-ohpc, spack-ohpc]
+  when: stack == 'openhpc'
+
+- name: OpenHPC Queue & Stack
+  include_role:
+    name: stack-openhpc
+  when: stack == 'openhpc'
+
+- name: Import Omnia Playbook
+  include_playbook: '../../../playbooks/omnia/omnia.yml'
+  when: stack == 'omnia'

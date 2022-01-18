@@ -1,0 +1,12 @@
+#
+# A dictionary of users to be created 
+# A user requires:
+#   - username 
+#   - uid 
+#   - password (already hashed, see https://docs.ansible.com/ansible/latest/reference_appendices/faq.html#how-do-i-generate-encrypted-passwords-for-the-user-module for methods to create a password) 
+#
+users:
+  test:
+    username: testuser
+    uid: 10123
+    password: '$6$rounds=656000$afefwgergg34g83$3gttapabM51SU3Rkb9hPBQuzO2gIkFsD5d6b1N/1CpCYDs3kH4Oi3qcl921NOoUngJ1bRj9lZjtK/.Hfr09Q./' # 'test123'
