@@ -1,6 +1,6 @@
 [submodule "playbooks/omnia"]
 	path = playbooks/omnia
-	url = https://github.com/dellhpc/omnia
+	url = https://github.com/openflighthpc/omnia
 [submodule "roles/stack-openhpc"]
 	path = roles/stack-openhpc
 	url = https://github.com/stackhpc/ansible-role-openhpc
