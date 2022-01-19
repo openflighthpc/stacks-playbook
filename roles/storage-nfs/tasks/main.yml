@@ -9,9 +9,13 @@
     mode: 0775
   with_dict: "{{ mounts }}"
 
-- name: Create export file
+- name: Add exports file
   when: "'head' in group_names"
-  template: src=exports dest=/etc/exports
+  lineinfile:
+    path: /etc/exports
+    line: "{{ item.value.export }} {{ item.value.export_opts }}"
+    state: present
+  with_dict: "{{ mounts }}"
 
 - name: Create fstab file (client)
   lineinfile:
