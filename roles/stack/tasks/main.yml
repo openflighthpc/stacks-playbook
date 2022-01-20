@@ -45,6 +45,3 @@
     name: stack-openhpc
   when: stack == 'openhpc'
 
-- name: Import Omnia Playbook
-  include_playbook: '../../../playbooks/omnia/omnia.yml'
-  when: stack == 'omnia'

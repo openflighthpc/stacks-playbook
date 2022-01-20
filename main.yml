@@ -7,3 +7,43 @@
     - "storage-{{ storage }}"
     - "users-{{ user_mgmt }}"
     - "stack"
+
+- name: Exit Playbook Unless Omnia
+  hosts: localhost
+  tasks:
+    - meta: end_play
+      when: stack != 'omnia'
+    
+- name: Prepare to Deploy Omnia from Playbook
+  hosts: localhost
+  remote_user: root
+  tasks: 
+    - name: Tweak Head Groups for Omnia
+      add_host:
+        name: "{{ head_node }}"
+        groups:
+          - login_node
+          - nfs_node
+          - manager
+      when: stack == 'omnia'
+
+    - name: Tweak Node Groups for Omnia
+      add_host:
+        name: "{{ item }}"
+        groups:
+          - compute
+      loop: "{{ groups.nodes }}"
+      when: stack == 'omnia'
+
+    - name: Set variables for Omnia
+      set_fact: 
+        k8s_server_ip: "{{ head_server_ip }}"
+        nfs_server_manager_node: "{{ storage_server_ip }}"
+        compute_ip_range: "{{ compute_ip_range }}"
+        domain_name: 'domain.ignored.noipa'
+        realm_name: 'REALM.IGNORED.NOIPA'
+        directory_manager_password: 'ipaignored'
+        ipa_admin_password: 'ipaignored'
+      when: stack == 'omnia'
+
+- import_playbook: 'playbooks/omnia/omnia.yml'
