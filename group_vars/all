@@ -1,10 +1,28 @@
-# Alphanumeric name for the cluster
+# Cluster Name
+## Alphanumeric name for the cluster
 cluster_name: mycluster
+
+# Compute IP Range
+## IP network & netmask of the internal compute network
+compute_ip_range: 10.110.0.0/255.255.0.0
+
+# Head Node IP
+## IP address on the internal network for the head node
+head_ip: 10.110.1.200
+
+# Storage Server IP
+## IP address on the internal network for the storage node
+## If no storage node specified, the head node will be configured as one
+storage_ip: ""
 
 ########################################################
 # Do not edit below unless you know what you are doing #
 ########################################################
 
 head_node: "{{ groups.head | first }}"
-compute_nodes: "{{ groups.nodes | join(',') }}"
+head_server_ip: "{{ head_ip }}"
 
+storage_node: "{{ (groups.storage | first) if groups.storage is defined else head_node }}"
+storage_server_ip: "{{ storage_ip if (storage_ip | length > 0) else head_server_ip }}"
+
+compute_nodes: "{{ groups.nodes | join(',') }}"
