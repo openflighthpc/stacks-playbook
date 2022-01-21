@@ -15,7 +15,9 @@
       when: stack != 'omnia'
     
 - name: Prepare to Deploy Omnia from Playbook
-  hosts: localhost
+  hosts:
+    - localhost
+    - all
   remote_user: root
   tasks: 
     - name: Tweak Head Groups for Omnia
@@ -44,6 +46,7 @@
         realm_name: 'REALM.IGNORED.NOIPA'
         directory_manager_password: 'ipaignored'
         ipa_admin_password: 'ipaignored'
+        openflight_stack: true
       when: stack == 'omnia'
 
 - import_playbook: 'playbooks/omnia/omnia.yml'
